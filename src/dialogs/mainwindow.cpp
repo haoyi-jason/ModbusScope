@@ -13,6 +13,7 @@
 #include "dialogs/registerdialog.h"
 #include "dialogs/settingsdialog.h"
 #include "dialogs/ui_mainwindow.h"
+#include "dialogs/writeregisterdialog.h"
 #include "graphview/graphview.h"
 #include "importexport/datafilehandler.h"
 #include "importexport/projectfilehandler.h"
@@ -99,6 +100,7 @@ MainWindow::MainWindow(QStringList cmdArguments, GuiModel* pGuiModel,
     connect(_pUi->actionToggleMarkers, &QAction::triggered, this, &MainWindow::toggleMarkersState);
     connect(_pUi->actionSettings, &QAction::triggered, this, &MainWindow::showSettingsDialog);
     connect(_pUi->actionRegisterSettings, &QAction::triggered, this, &MainWindow::handleShowRegisterDialog);
+    connect(_pUi->actionWriteRegister, &QAction::triggered, this, &MainWindow::onActionWriteRegister);
     connect(_pUi->actionAddNote, &QAction::triggered, this, &MainWindow::addNoteToGraph);
     connect(_pUi->actionZoom, &QAction::triggered, this, &MainWindow::toggleZoom); /* Only called on GUI click, not on setChecked */
 
@@ -886,5 +888,11 @@ void MainWindow::handleFileOpen(QString filename)
         /* Assume data file import */
         _pDataFileHandler->openDataFile(filename);
     }
+}
+
+void MainWindow::onActionWriteRegister()
+{
+    WriteRegisterDialog dialog(_pModbusPoll, this);
+    dialog.exec();
 }
 

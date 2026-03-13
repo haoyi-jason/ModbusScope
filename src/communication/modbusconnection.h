@@ -25,6 +25,7 @@ public:
     bool bConnectionErrorHandled;
 
     QModbusReply * pReply;
+    QModbusReply * pWriteReply{nullptr};
 };
 
 
@@ -56,6 +57,7 @@ public:
     virtual void close(void);
 
     virtual void sendReadRequest(ModbusDataUnit const& regAddress, quint16 size);
+    virtual void sendWriteRequest(ModbusDataUnit const& regAddress, quint16 value);
 
     virtual bool isConnected(void);
 
@@ -67,6 +69,10 @@ signals:
     void readRequestProtocolError(QModbusPdu::ExceptionCode exceptionCode);
     void readRequestError(QString errorString, QModbusDevice::Error error);
 
+    void writeRequestSuccess();
+    void writeRequestProtocolError(QModbusPdu::ExceptionCode exceptionCode);
+    void writeRequestError(QString errorString, QModbusDevice::Error error);
+
 private slots:
     void handleConnectionStateChanged(QModbusDevice::State connectionState);
     void handleConnectionErrorOccurred(QModbusDevice::Error error);
@@ -75,6 +81,7 @@ private slots:
     void connectionDestroyed();
 
     void handleRequestFinished();
+    void handleWriteRequestFinished();
 
 private:
     bool prepareConnectionOpen();

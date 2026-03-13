@@ -77,6 +77,7 @@
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
     <addaction name="actionRegisterSettings"/>
+    <addaction name="actionWriteRegister"/>
     <addaction name="separator"/>
     <addaction name="actionClearData"/>
     <addaction name="actionManageNotes"/>
@@ -509,6 +510,11 @@
    </property>
    <property name="text">
     <string>&amp;Settings...</string>
+   </property>
+  </action>
+  <action name="actionWriteRegister">
+   <property name="text">
+    <string>Write Register (FC06)...</string>
    </property>
   </action>
  </widget>
