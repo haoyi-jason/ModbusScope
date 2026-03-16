@@ -29,6 +29,13 @@ ModbusMaster::ModbusMaster(ModbusConnection* pModbusConnection,
     connect(_pModbusConnection.get(), &ModbusConnection::readRequestProtocolError, this,
             &ModbusMaster::handleRequestProtocolError);
     connect(_pModbusConnection.get(), &ModbusConnection::readRequestError, this, &ModbusMaster::handleRequestError);
+
+    connect(_pModbusConnection.get(), &ModbusConnection::writeRequestSuccess, this,
+            &ModbusMaster::handleWriteRequestSuccess);
+    connect(_pModbusConnection.get(), &ModbusConnection::writeRequestProtocolError, this,
+            &ModbusMaster::handleWriteRequestProtocolError);
+    connect(_pModbusConnection.get(), &ModbusConnection::writeRequestError, this,
+            &ModbusMaster::handleWriteRequestError);
 }
 
 ModbusMaster::~ModbusMaster()
@@ -101,9 +108,47 @@ void ModbusMaster::cleanUp()
     }
 }
 
+void ModbusMaster::writeRegister(ModbusDataUnit regAddr, quint16 value)
+{
+    _writeRegister = regAddr;
+    _writeValue = value;
+    _bWritePending = true;
+
+    auto connData = _pSettingsModel->connectionSettings(_connectionId);
+
+    if (connData->connectionType() == ConnectionTypes::TYPE_SERIAL)
+    {
+        ModbusConnection::serialSettings_t serialSettings = {
+            .portName = connData->portName(),
+            .parity = connData->parity(),
+            .baudrate = connData->baudrate(),
+            .databits = connData->databits(),
+            .stopbits = connData->stopbits(),
+        };
+        _pModbusConnection->configureSerialConnection(serialSettings);
+    }
+    else
+    {
+        ModbusConnection::tcpSettings_t tcpSettings = {
+            .ip = connData->ipAddress(),
+            .port = connData->port(),
+        };
+        _pModbusConnection->configureTcpConnection(tcpSettings);
+    }
+
+    _pModbusConnection->open(connData->timeout());
+}
+
 void ModbusMaster::handleConnectionOpened()
 {
-    emit triggerNextRequest();
+    if (_bWritePending)
+    {
+        _pModbusConnection->sendWriteRequest(_writeRegister, _writeValue);
+    }
+    else
+    {
+        emit triggerNextRequest();
+    }
 }
 
 void ModbusMaster::handlerConnectionError(QModbusDevice::Error error, QString msg)
@@ -112,9 +157,17 @@ void ModbusMaster::handlerConnectionError(QModbusDevice::Error error, QString ms
 
     logError(QString("Connection error: ") + msg);
 
-    _readRegisters.addAllErrors();
-
-    finishRead(true);
+    if (_bWritePending)
+    {
+        _bWritePending = false;
+        _pModbusConnection->close();
+        emit modbusWriteDone(false, msg, _connectionId);
+    }
+    else
+    {
+        _readRegisters.addAllErrors();
+        finishRead(true);
+    }
 }
 
 void ModbusMaster::handleRequestSuccess(ModbusDataUnit const& startRegister, QList<quint16> registerDataList)
@@ -169,6 +222,40 @@ void ModbusMaster::handleRequestError(QString errorString, QModbusDevice::Error 
 
     // Start next read
     emit triggerNextRequest();
+}
+
+void ModbusMaster::handleWriteRequestSuccess()
+{
+    logDebug(QString("Write register success"));
+
+    _bWritePending = false;
+
+    _pModbusConnection->close();
+
+    emit modbusWriteDone(true, QString(), _connectionId);
+}
+
+void ModbusMaster::handleWriteRequestProtocolError(QModbusPdu::ExceptionCode exceptionCode)
+{
+    logError(QString("Write Modbus Exception: %1").arg(exceptionCode));
+
+    _bWritePending = false;
+
+    _pModbusConnection->close();
+
+    emit modbusWriteDone(false, QString("Protocol error: %1").arg(exceptionCode), _connectionId);
+}
+
+void ModbusMaster::handleWriteRequestError(QString errorString, QModbusDevice::Error error)
+{
+    Q_UNUSED(error);
+    logError(QString("Write Request Failed: %1").arg(errorString));
+
+    _bWritePending = false;
+
+    _pModbusConnection->close();
+
+    emit modbusWriteDone(false, errorString, _connectionId);
 }
 
 void ModbusMaster::handleTriggerNextRequest(void)

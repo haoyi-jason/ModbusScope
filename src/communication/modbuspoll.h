@@ -41,12 +41,16 @@ public:
     bool isActive();
     void resetCommunicationStats();
 
+    void writeRegister(ConnectionTypes::connectionId_t connId, quint16 address, quint8 slaveId, quint16 value);
+
 signals:
     void registerDataReady(ResultDoubleList registers);
+    void writeRegisterDone(bool success, QString errorMessage);
 
 private slots:
     void handlePollDone(ModbusResultMap partialResultMap, ConnectionTypes::connectionId_t connectionId);
     void triggerRegisterRead();
+    void handleWriteDone(bool success, QString errorMessage, ConnectionTypes::connectionId_t connectionId);
 
 private:
     quint8 lowestConsecutiveMaxForConnection(ConnectionTypes::connectionId_t connId) const;

@@ -23,11 +23,13 @@ public:
     virtual ~ModbusMaster();
 
     void readRegisterList(QList<ModbusDataUnit> registerList, quint8 consecutiveMax);
+    void writeRegister(ModbusDataUnit regAddr, quint16 value);
 
     void cleanUp();
 
 signals:
     void modbusPollDone(ModbusResultMap modbusResults, ConnectionTypes::connectionId_t connectionId);
+    void modbusWriteDone(bool success, QString errorMessage, ConnectionTypes::connectionId_t connectionId);
     void triggerNextRequest();
 
 private slots:
@@ -37,6 +39,10 @@ private slots:
     void handleRequestSuccess(ModbusDataUnit const& startRegister, QList<quint16> registerDataList);
     void handleRequestProtocolError(QModbusPdu::ExceptionCode exceptionCode);
     void handleRequestError(QString errorString, QModbusDevice::Error error);
+
+    void handleWriteRequestSuccess();
+    void handleWriteRequestProtocolError(QModbusPdu::ExceptionCode exceptionCode);
+    void handleWriteRequestError(QString errorString, QModbusDevice::Error error);
 
     void handleTriggerNextRequest(void);
 
@@ -55,6 +61,10 @@ private:
     std::unique_ptr<ModbusConnection> _pModbusConnection;
     SettingsModel* _pSettingsModel{};
     ReadRegisters _readRegisters{};
+
+    bool _bWritePending{false};
+    quint16 _writeValue{};
+    ModbusDataUnit _writeRegister{};
 };
 
 #endif // MODBUSMASTER_H

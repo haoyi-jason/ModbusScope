@@ -30,6 +30,7 @@ ModbusPoll::ModbusPoll(SettingsModel * pSettingsModel, QObject *parent) :
         _modbusMasters.append(modbusData);
 
         connect(_modbusMasters.last()->pModbusMaster, &ModbusMaster::modbusPollDone, this, &ModbusPoll::handlePollDone);
+        connect(_modbusMasters.last()->pModbusMaster, &ModbusMaster::modbusWriteDone, this, &ModbusPoll::handleWriteDone);
     }
 
     _activeMastersCount = 0;
@@ -242,4 +243,19 @@ quint8 ModbusPoll::lowestConsecutiveMaxForConnection(connectionId_t connId) cons
         }
     }
     return consecutiveMax;
+}
+
+void ModbusPoll::writeRegister(connectionId_t connId, quint16 address, quint8 slaveId, quint16 value)
+{
+    if (connId < static_cast<connectionId_t>(ConnectionTypes::ID_CNT))
+    {
+        ModbusDataUnit regAddr(address, ModbusAddress::ObjectType::HOLDING_REGISTER, slaveId);
+        _modbusMasters[connId]->pModbusMaster->writeRegister(regAddr, value);
+    }
+}
+
+void ModbusPoll::handleWriteDone(bool success, QString errorMessage, connectionId_t connectionId)
+{
+    Q_UNUSED(connectionId);
+    emit writeRegisterDone(success, errorMessage);
 }

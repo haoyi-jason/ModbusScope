@@ -117,6 +117,38 @@ void ModbusConnection::sendReadRequest(ModbusDataUnit const& regAddress, quint16
 }
 
 /*!
+ * Send write request (FC06 – Write Single Register) over connection
+ *
+ * \param regAddress    register address and slave id
+ * \param value         value to write
+ */
+void ModbusConnection::sendWriteRequest(ModbusDataUnit const& regAddress, quint16 value)
+{
+    if (isConnected())
+    {
+        QModbusDataUnit dataUnit(RegisterType::HoldingRegisters, static_cast<int>(regAddress.protocolAddress()), 1);
+        dataUnit.setValue(0, value);
+        _connectionList.last()->pWriteReply =
+          _connectionList.last()->pModbusClient->sendWriteRequest(dataUnit, regAddress.slaveId());
+
+        if (_connectionList.last()->pWriteReply)
+        {
+            connect(_connectionList.last()->pWriteReply, &QModbusReply::finished, this,
+                    &ModbusConnection::handleWriteRequestFinished);
+        }
+        else
+        {
+            emit writeRequestError(_connectionList.last()->pModbusClient->errorString(),
+                                   _connectionList.last()->pModbusClient->error());
+        }
+    }
+    else
+    {
+        emit connectionError(QModbusDevice::WriteError, QString("Not connected"));
+    }
+}
+
+/*!
  *  Return whether connection is ok
  *
  * \return Connection state
@@ -289,6 +321,40 @@ void ModbusConnection::handleRequestFinished()
     else
     {
         // ignore data from reply
+    }
+}
+
+/*!
+ * Handle write request finished
+ */
+void ModbusConnection::handleWriteRequestFinished()
+{
+    QModbusReply* pReply = qobject_cast<QModbusReply*>(QObject::sender());
+    auto err = pReply->error();
+
+    // Start deletion of reply object before handling data (and closing connection)
+    pReply->deleteLater();
+
+    /* Check if reply is for valid connection (the last) */
+    if (pReply == _connectionList.last()->pWriteReply)
+    {
+        if (err == QModbusDevice::NoError)
+        {
+            emit writeRequestSuccess();
+        }
+        else if (err == QModbusDevice::ProtocolError)
+        {
+            auto exceptionCode = pReply->rawResult().exceptionCode();
+            emit writeRequestProtocolError(exceptionCode);
+        }
+        else
+        {
+            emit writeRequestError(pReply->errorString(), pReply->error());
+        }
+    }
+    else
+    {
+        // ignore data from stale reply
     }
 }
 

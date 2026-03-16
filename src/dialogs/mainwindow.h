@@ -73,6 +73,8 @@ private slots:
     void toggleMarkersState();
     void handleOpenRecentProject(QString projectFile);
 
+    void onActionWriteRegister();
+
     /* Model change handlers */
     void handleGraphVisibilityChange(quint32 graphIdx);
     void handleGraphColorChange(const quint32 graphIdx);
