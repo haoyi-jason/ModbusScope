@@ -1,7 +1,10 @@
 name: Build
 
 # Triggered when code is pushed to any branch in a repository
-on: push
+on: 
+workflow_dispatch:
+push:
+pull_request:
 
 jobs:
   linux:
