@@ -55,6 +55,7 @@ add_subdirectory(datahandling)
 add_subdirectory(dialogs)
 add_subdirectory(importexport)
 add_subdirectory(models)
+add_subdirectory(testslave)
 add_subdirectory(util)
 
 
