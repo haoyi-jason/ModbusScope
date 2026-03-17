@@ -74,6 +74,7 @@ private slots:
     void handleOpenRecentProject(QString projectFile);
 
     void onActionWriteRegister();
+    void onActionInternalParam();
 
     /* Model change handlers */
     void handleGraphVisibilityChange(quint32 graphIdx);

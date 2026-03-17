@@ -10,6 +10,7 @@
 #include "dialogs/aboutdialog.h"
 #include "dialogs/diagnosticdialog.h"
 #include "dialogs/importmbcdialog.h"
+#include "dialogs/internalparamdialog.h"
 #include "dialogs/registerdialog.h"
 #include "dialogs/settingsdialog.h"
 #include "dialogs/ui_mainwindow.h"
@@ -101,6 +102,7 @@ MainWindow::MainWindow(QStringList cmdArguments, GuiModel* pGuiModel,
     connect(_pUi->actionSettings, &QAction::triggered, this, &MainWindow::showSettingsDialog);
     connect(_pUi->actionRegisterSettings, &QAction::triggered, this, &MainWindow::handleShowRegisterDialog);
     connect(_pUi->actionWriteRegister, &QAction::triggered, this, &MainWindow::onActionWriteRegister);
+    connect(_pUi->actionInternalParam, &QAction::triggered, this, &MainWindow::onActionInternalParam);
     connect(_pUi->actionAddNote, &QAction::triggered, this, &MainWindow::addNoteToGraph);
     connect(_pUi->actionZoom, &QAction::triggered, this, &MainWindow::toggleZoom); /* Only called on GUI click, not on setChecked */
 
@@ -893,6 +895,12 @@ void MainWindow::handleFileOpen(QString filename)
 void MainWindow::onActionWriteRegister()
 {
     WriteRegisterDialog dialog(_pModbusPoll, this);
+    dialog.exec();
+}
+
+void MainWindow::onActionInternalParam()
+{
+    InternalParamDialog dialog(_pModbusPoll, this);
     dialog.exec();
 }
 
