@@ -22,6 +22,7 @@ public:
     void close(void) override;
 
     void sendReadRequest(ModbusDataUnit const& regAddress, quint16 size) override;
+    void sendWriteRequest(ModbusDataUnit const& regAddress, quint16 value) override;
 
     bool isConnected(void) override;
 

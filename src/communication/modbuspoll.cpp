@@ -3,6 +3,7 @@
 
 #include <QDateTime>
 
+#include "communication/internalparammaster.h"
 #include "communication/modbusmaster.h"
 #include "communication/registervaluehandler.h"
 #include "models/settingsmodel.h"
@@ -31,6 +32,16 @@ ModbusPoll::ModbusPoll(SettingsModel * pSettingsModel, QObject *parent) :
 
         connect(_modbusMasters.last()->pModbusMaster, &ModbusMaster::modbusPollDone, this, &ModbusPoll::handlePollDone);
         connect(_modbusMasters.last()->pModbusMaster, &ModbusMaster::modbusWriteDone, this, &ModbusPoll::handleWriteDone);
+
+        // Per-connection internal-parameter master (owns its own connection)
+        auto ipConn = new ModbusConnection();
+        auto ipMaster = new InternalParamMaster(ipConn, pSettingsModel, i, this);
+        _internalParamMasters.append(ipMaster);
+
+        connect(ipMaster, &InternalParamMaster::readDone,
+                this, &ModbusPoll::internalParamReadDone);
+        connect(ipMaster, &InternalParamMaster::writeDone,
+                this, &ModbusPoll::internalParamWriteDone);
     }
 
     _activeMastersCount = 0;
@@ -252,6 +263,66 @@ void ModbusPoll::writeRegister(connectionId_t connId, quint16 address, quint8 sl
         ModbusDataUnit regAddr(address, ModbusAddress::ObjectType::HOLDING_REGISTER, slaveId);
         _modbusMasters[connId]->pModbusMaster->writeRegister(regAddr, value);
     }
+}
+
+void ModbusPoll::readInternalParam(connectionId_t connId, quint8 slaveId,
+                                   quint16 paramAddr, bool is32Bit)
+{
+    if (connId >= static_cast<connectionId_t>(ConnectionTypes::ID_CNT))
+    {
+        emit internalParamReadDone(false, tr("Invalid connection ID"), 0, 0);
+        return;
+    }
+
+    if (_pSettingsModel->connectionSettings(connId)->connectionType() != ConnectionTypes::TYPE_SERIAL)
+    {
+        emit internalParamReadDone(false, tr("Internal parameter access is only supported for RTU (serial) connections"), 0, 0);
+        return;
+    }
+
+    if (_bPollActive)
+    {
+        emit internalParamReadDone(false, tr("Stop logging before using internal parameter access"), 0, 0);
+        return;
+    }
+
+    if (_internalParamMasters[static_cast<int>(connId)]->isBusy())
+    {
+        emit internalParamReadDone(false, tr("Internal parameter master is busy"), 0, 0);
+        return;
+    }
+
+    _internalParamMasters[static_cast<int>(connId)]->readParam(slaveId, paramAddr, is32Bit);
+}
+
+void ModbusPoll::writeInternalParam(connectionId_t connId, quint8 slaveId,
+                                    quint16 paramAddr, quint16 word1, quint16 word2, bool is32Bit)
+{
+    if (connId >= static_cast<connectionId_t>(ConnectionTypes::ID_CNT))
+    {
+        emit internalParamWriteDone(false, tr("Invalid connection ID"), 0, 0);
+        return;
+    }
+
+    if (_pSettingsModel->connectionSettings(connId)->connectionType() != ConnectionTypes::TYPE_SERIAL)
+    {
+        emit internalParamWriteDone(false, tr("Internal parameter access is only supported for RTU (serial) connections"), 0, 0);
+        return;
+    }
+
+    if (_bPollActive)
+    {
+        emit internalParamWriteDone(false, tr("Stop logging before using internal parameter access"), 0, 0);
+        return;
+    }
+
+    if (_internalParamMasters[static_cast<int>(connId)]->isBusy())
+    {
+        emit internalParamWriteDone(false, tr("Internal parameter master is busy"), 0, 0);
+        return;
+    }
+
+    _internalParamMasters[static_cast<int>(connId)]->writeParam(slaveId, paramAddr, word1, word2, is32Bit);
 }
 
 void ModbusPoll::handleWriteDone(bool success, QString errorMessage, connectionId_t connectionId)

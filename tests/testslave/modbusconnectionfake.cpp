@@ -118,3 +118,12 @@ bool ModbusConnectionFake::isConnected(void)
 {
     return true;
 }
+
+void ModbusConnectionFake::sendWriteRequest(ModbusDataUnit const& regAddress, quint16 value)
+{
+    Q_UNUSED(regAddress);
+    Q_UNUSED(value);
+
+    // Immediately acknowledge the write as successful
+    emit writeRequestSuccess();
+}

@@ -78,6 +78,7 @@
     <addaction name="actionSettings"/>
     <addaction name="actionRegisterSettings"/>
     <addaction name="actionWriteRegister"/>
+    <addaction name="actionInternalParam"/>
     <addaction name="separator"/>
     <addaction name="actionClearData"/>
     <addaction name="actionManageNotes"/>
@@ -515,6 +516,11 @@
   <action name="actionWriteRegister">
    <property name="text">
     <string>Write Register (FC06)...</string>
+   </property>
+  </action>
+  <action name="actionInternalParam">
+   <property name="text">
+    <string>Internal Parameter Access (RTU)...</string>
    </property>
   </action>
  </widget>

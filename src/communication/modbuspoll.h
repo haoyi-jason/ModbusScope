@@ -11,6 +11,7 @@
 class SettingsModel;
 class RegisterValueHandler;
 class ModbusMaster;
+class InternalParamMaster;
 
 class ModbusMasterData : public QObject
 {
@@ -43,9 +44,17 @@ public:
 
     void writeRegister(ConnectionTypes::connectionId_t connId, quint16 address, quint8 slaveId, quint16 value);
 
+    void readInternalParam(ConnectionTypes::connectionId_t connId, quint8 slaveId,
+                           quint16 paramAddr, bool is32Bit);
+    void writeInternalParam(ConnectionTypes::connectionId_t connId, quint8 slaveId,
+                            quint16 paramAddr, quint16 word1, quint16 word2, bool is32Bit);
+
 signals:
     void registerDataReady(ResultDoubleList registers);
     void writeRegisterDone(bool success, QString errorMessage);
+
+    void internalParamReadDone(bool success, QString errorMsg, quint16 word1, quint16 word2);
+    void internalParamWriteDone(bool success, QString errorMsg, quint16 word1, quint16 word2);
 
 private slots:
     void handlePollDone(ModbusResultMap partialResultMap, ConnectionTypes::connectionId_t connectionId);
@@ -56,6 +65,7 @@ private:
     quint8 lowestConsecutiveMaxForConnection(ConnectionTypes::connectionId_t connId) const;
 
     QList<ModbusMasterData*> _modbusMasters;
+    QList<InternalParamMaster*> _internalParamMasters;
     quint32 _activeMastersCount;
 
     bool _bPollActive;
