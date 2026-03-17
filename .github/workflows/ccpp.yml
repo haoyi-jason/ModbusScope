@@ -4,30 +4,30 @@ name: Build
 on: workflow_dispatch
 
 jobs:
-  linux:
-    runs-on: ubuntu-latest
+  #linux:
+  #  runs-on: ubuntu-latest
 
-    container:
-      image: docker://jgeudens/qt-linux:6.8.3_build_1
-    steps:
-      - uses: actions/checkout@v6.0.0
+   # container:
+   #   image: docker://jgeudens/qt-linux:6.8.3_build_1
+   # steps:
+   #   - uses: actions/checkout@v6.0.0
 
-      - name: Start display server
-        run: bash /start.sh &
+   #   - name: Start display server
+    #    run: bash /start.sh &
 
-      - name: Configure safe directory for git
-        run: git config --global --add safe.directory ${GITHUB_WORKSPACE}
+     # - name: Configure safe directory for git
+     #   run: git config --global --add safe.directory ${GITHUB_WORKSPACE}
       
-      - name: Update Modules and Build
-        run: bash scripts/build_linux.sh
+     # - name: Update Modules and Build
+     #   run: bash scripts/build_linux.sh
 
-      - name: Deploy
-        run: bash scripts/deploy_linux.sh
+     # - name: Deploy
+     #   run: bash scripts/deploy_linux.sh
 
-      - uses: actions/upload-artifact@v7.0.0
-        with:
-          name: modbusscope-linux
-          path: ModbusScope*.AppImage
+     # - uses: actions/upload-artifact@v7.0.0
+     #   with:
+     #     name: modbusscope-linux
+     #     path: ModbusScope*.AppImage
           
   windows:
     runs-on: windows-2022
