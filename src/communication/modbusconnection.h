@@ -60,7 +60,7 @@ public:
     virtual void sendWriteRequest(ModbusDataUnit const& regAddress, quint16 value);
 
     virtual bool isConnected(void);
-
+    virtual ~ModbusConnection() override = default;
 signals:
     void connectionSuccess(void);
     void connectionError(QModbusDevice::Error error, QString msg);
