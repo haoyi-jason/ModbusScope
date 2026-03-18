@@ -76,6 +76,22 @@ void InternalParamMaster::writeParam(quint8 slaveId, quint16 paramAddr,
     openConnection();
 }
 
+void InternalParamMaster::writeKey(quint8 slaveId, quint16 key)
+{
+    if (isBusy())
+    {
+        qCWarning(scopeCommConnection) << "[InternalParam] Busy - ignoring writeKey request";
+        return;
+    }
+
+    _opType = OpType::WRITE_KEY;
+    _slaveId = slaveId;
+    _key = key;
+    _state = State::WRITE_KEY_REG;
+
+    openConnection();
+}
+
 void InternalParamMaster::openConnection()
 {
     /* Configure the underlying connection based on the settings.
@@ -109,7 +125,9 @@ void InternalParamMaster::openConnection()
 
 void InternalParamMaster::handleConnectionOpened()
 {
-    if (_state == State::WRITE_PARAM_ADDR)
+    /* Both WRITE_PARAM_ADDR (start of a read/write param operation) and
+     * WRITE_KEY_REG (start of a key write) enter the state machine via doNextWrite(). */
+    if (_state == State::WRITE_PARAM_ADDR || _state == State::WRITE_KEY_REG)
     {
         doNextWrite();
     }
@@ -211,6 +229,19 @@ void InternalParamMaster::doNextWrite()
         _waitTimer.start(WAIT_MS);
         break;
 
+    case State::WRITE_KEY_REG:
+        // Write key value to reg 99
+        _pConn->sendWriteRequest(makeReg(REG_KEY), _key);
+        _state = State::WRITE_KEY_DONE;
+        break;
+
+    case State::WRITE_KEY_DONE:
+        // Key write completed – close connection and signal done
+        _pConn->close();
+        _state = State::IDLE;
+        emit writeKeyDone(true, QString());
+        break;
+
     default:
         break;
     }
@@ -230,9 +261,17 @@ void InternalParamMaster::handleError(const QString& msg)
     {
         emit readDone(false, msg, 0, 0);
     }
-    else
+    else if (op == OpType::WRITE_PARAM)
     {
         emit writeDone(false, msg, 0, 0);
+    }
+    else if (op == OpType::WRITE_KEY)
+    {
+        emit writeKeyDone(false, msg);
+    }
+    else
+    {
+        qCWarning(scopeCommConnection) << "[InternalParam] handleError: unexpected op type";
     }
 }
 
