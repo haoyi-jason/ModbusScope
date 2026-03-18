@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "models/connectiontypes.h"
+#include "dialogs/batchparamdialog.h"
 
 namespace Ui {
 class InternalParamDialog;
@@ -27,6 +28,8 @@ private slots:
 
     void onWriteKeyClicked();
     void onWriteKeyDone(bool success, const QString& errorMsg);
+
+    void onBatchClicked();
 
 private:
     void setButtonsEnabled(bool enabled);
