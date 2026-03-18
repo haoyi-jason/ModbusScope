@@ -125,5 +125,8 @@ void ModbusConnectionFake::sendWriteRequest(ModbusDataUnit const& regAddress, qu
     Q_UNUSED(value);
 
     // Immediately acknowledge the write as successful
-    emit writeRequestSuccess();
+    // Emit asynchronously to avoid re-entrancy/recursion in InternalParamMaster
+    QTimer::singleShot(0, this, [this]() {
+        emit writeRequestSuccess();
+    });
 }
