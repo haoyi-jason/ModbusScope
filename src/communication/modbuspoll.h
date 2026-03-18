@@ -48,6 +48,7 @@ public:
                            quint16 paramAddr, bool is32Bit);
     void writeInternalParam(ConnectionTypes::connectionId_t connId, quint8 slaveId,
                             quint16 paramAddr, quint16 word1, quint16 word2, bool is32Bit);
+    void writeKey(ConnectionTypes::connectionId_t connId, quint8 slaveId, quint16 key);
 
 signals:
     void registerDataReady(ResultDoubleList registers);
@@ -55,6 +56,7 @@ signals:
 
     void internalParamReadDone(bool success, QString errorMsg, quint16 word1, quint16 word2);
     void internalParamWriteDone(bool success, QString errorMsg, quint16 word1, quint16 word2);
+    void internalParamWriteKeyDone(bool success, QString errorMsg);
 
 private slots:
     void handlePollDone(ModbusResultMap partialResultMap, ConnectionTypes::connectionId_t connectionId);

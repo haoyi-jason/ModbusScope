@@ -15,6 +15,7 @@ class SettingsModel;
  *        read/write transaction via Modbus RTU (holding registers 98-102).
  *
  * Register map (0-based):
+ *   99  – key/unlock register (write key value before read/write)
  *   98  – action register  (write 1 = read-param, 3 = write-param)
  *   100 – parameter-address register
  *   101 – data register #1 (first / only 16-bit word)
@@ -22,6 +23,7 @@ class SettingsModel;
  *
  * Read sequence  : write 100 → write 98=1 → wait 200ms → FC03 read 101 (qty 1/2)
  * Write sequence : write 100 → write 101 → [write 102] → write 98=3 → wait 200ms → FC03 read 101 (qty 1/2)
+ * Write key      : write 99=key (independent user action, performed before read/write)
  */
 class InternalParamMaster : public QObject
 {
@@ -35,12 +37,14 @@ public:
 
     void readParam(quint8 slaveId, quint16 paramAddr, bool is32Bit);
     void writeParam(quint8 slaveId, quint16 paramAddr, quint16 word1, quint16 word2, bool is32Bit);
+    void writeKey(quint8 slaveId, quint16 key);
 
     bool isBusy() const;
 
 signals:
     void readDone(bool success, QString errorMsg, quint16 word1, quint16 word2);
     void writeDone(bool success, QString errorMsg, quint16 word1, quint16 word2);
+    void writeKeyDone(bool success, QString errorMsg);
 
 private slots:
     void handleConnectionOpened();
@@ -65,13 +69,16 @@ private:
         WRITE_DATA2,
         WRITE_ACTION,
         WAITING,
-        READ_DATA
+        READ_DATA,
+        WRITE_KEY_REG,
+        WRITE_KEY_DONE
     };
 
     enum class OpType
     {
         READ_PARAM,
-        WRITE_PARAM
+        WRITE_PARAM,
+        WRITE_KEY
     };
 
     void openConnection();
@@ -91,6 +98,7 @@ private:
     quint16 _paramAddr{0};
     quint16 _word1{0};
     quint16 _word2{0};
+    quint16 _key{0};
     bool _is32Bit{false};
 
     QTimer _waitTimer;
@@ -99,6 +107,7 @@ private:
      * Note: gaps between addresses are intentional – the device uses other
      * registers in the 98–102 range for unrelated purposes. */
     static constexpr quint16 REG_ACTION = 98;     /*!< Write 1=read, 3=write  */
+    static constexpr quint16 REG_KEY = 99;         /*!< Key/unlock register */
     static constexpr quint16 REG_PARAM_ADDR = 100; /*!< 16-bit parameter address */
     static constexpr quint16 REG_DATA1 = 101;      /*!< First / only 16-bit data word */
     static constexpr quint16 REG_DATA2 = 102;      /*!< Second data word (32-bit only) */
