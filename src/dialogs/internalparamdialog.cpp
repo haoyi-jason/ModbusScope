@@ -15,6 +15,7 @@ InternalParamDialog::InternalParamDialog(ModbusPoll* pModbusPoll, QWidget* paren
     connect(ui->btnRead, &QPushButton::clicked, this, &InternalParamDialog::onReadClicked);
     connect(ui->btnWrite, &QPushButton::clicked, this, &InternalParamDialog::onWriteClicked);
     connect(ui->btnWriteKey, &QPushButton::clicked, this, &InternalParamDialog::onWriteKeyClicked);
+    connect(ui->btnBatch, &QPushButton::clicked, this, &InternalParamDialog::onBatchClicked);
     connect(ui->btnClose, &QPushButton::clicked, this, &QDialog::accept);
 
     connect(ui->radioBtn16bit, &QRadioButton::toggled, this, &InternalParamDialog::onModeChanged);
@@ -189,4 +190,11 @@ quint16 InternalParamDialog::parseHexOrDec(const QString& text, bool* ok)
         *ok = localOk;
 
     return static_cast<quint16>(value);
+}
+
+void InternalParamDialog::onBatchClicked()
+{
+    BatchParamDialog dlg(_pModbusPoll, this);
+    dlg.setConnection(selectedConnId(), static_cast<quint8>(ui->spnSlaveId->value()));
+    dlg.exec();
 }
