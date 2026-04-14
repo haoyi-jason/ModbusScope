@@ -437,7 +437,7 @@ quint32 BatchParamDialog::parseHexOrDec32(const QString& text, bool* ok)
         const qint64 signed64 = trimmed.toLongLong(&localOk, 10);
         if (localOk)
         {
-            if (signed64 < static_cast<qint64>(INT32_MIN) || signed64 > static_cast<qint64>(UINT32_MAX))
+            if (signed64 < INT32_MIN || signed64 > static_cast<qint64>(UINT32_MAX))
             {
                 localOk = false;
             }
