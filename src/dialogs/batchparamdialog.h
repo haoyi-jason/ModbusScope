@@ -31,6 +31,7 @@ private slots:
 
     void onBatchReadStepDone(bool success, const QString& errorMsg, quint16 word1, quint16 word2);
     void onBatchWriteStepDone(bool success, const QString& errorMsg, quint16 word1, quint16 word2);
+    void onHexDisplayToggled(bool checked);
 
 private:
     void loadCsvToTable(const QString& filePath);
@@ -42,7 +43,8 @@ private:
     void setBatchButtonsEnabled(bool enabled);
 
     static quint32 parseHexOrDec32(const QString& text, bool* ok = nullptr);
-    static QString formatValue(quint32 value, bool is32Bit);
+    static QString formatValue(quint32 value, bool is32Bit, bool hexMode);
+    static QString formatAddress(quint16 addr, bool hexMode);
 
     Ui::BatchParamDialog* ui;
     ModbusPoll* _pModbusPoll;

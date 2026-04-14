@@ -78,6 +78,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="chkHexDisplay">
+          <property name="text">
+           <string>Display as Hex</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="spacerTableButtons">
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>

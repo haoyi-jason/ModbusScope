@@ -8,6 +8,7 @@
 #include <QTextStream>
 #include <QMessageBox>
 #include <QTableWidgetItem>
+#include <climits>
 
 // Column indices
 static const int COL_NAME    = 0;
@@ -38,6 +39,7 @@ BatchParamDialog::BatchParamDialog(ModbusPoll* pModbusPoll, QWidget* parent)
     connect(ui->btnBatchWrite, &QPushButton::clicked, this, &BatchParamDialog::onBatchWriteClicked);
     connect(ui->btnStop,       &QPushButton::clicked, this, &BatchParamDialog::onStopClicked);
     connect(ui->btnClose,      &QPushButton::clicked, this, &QDialog::accept);
+    connect(ui->chkHexDisplay, &QCheckBox::toggled,   this, &BatchParamDialog::onHexDisplayToggled);
 
     connect(_pModbusPoll, &ModbusPoll::internalParamReadDone,
             this, &BatchParamDialog::onBatchReadStepDone);
@@ -162,7 +164,8 @@ void BatchParamDialog::onBatchReadStepDone(bool success, const QString& errorMsg
                               ? (static_cast<quint32>(word1) | (static_cast<quint32>(word2) << 16))
                               : static_cast<quint32>(word1);
 
-        ui->tblParams->setItem(row, COL_VALUE, new QTableWidgetItem(formatValue(value, is32)));
+        ui->tblParams->setItem(row, COL_VALUE,
+            new QTableWidgetItem(formatValue(value, is32, ui->chkHexDisplay->isChecked())));
     }
     else
     {
@@ -355,6 +358,11 @@ void BatchParamDialog::loadCsvToTable(const QString& filePath)
             continue;
         }
 
+        // Only "16" and "32" are valid type values
+        if (typeStr != "16" && typeStr != "32")
+        {
+            continue;
+        }
         const bool is32 = (typeStr == "32");
 
         bool valOk = false;
@@ -364,16 +372,18 @@ void BatchParamDialog::loadCsvToTable(const QString& filePath)
             value = parseHexOrDec32(valStr, &valOk);
         }
 
+        const bool hexMode = ui->chkHexDisplay->isChecked();
+
         const int row = ui->tblParams->rowCount();
         ui->tblParams->insertRow(row);
         ui->tblParams->setItem(row, COL_NAME,
             new QTableWidgetItem(name));
         ui->tblParams->setItem(row, COL_ADDRESS,
-            new QTableWidgetItem(QString("0x%1").arg(addr, 4, 16, QChar('0')).toUpper()));
+            new QTableWidgetItem(formatAddress(static_cast<quint16>(addr), hexMode)));
         ui->tblParams->setItem(row, COL_TYPE,
             new QTableWidgetItem(is32 ? "32" : "16"));
         ui->tblParams->setItem(row, COL_VALUE,
-            new QTableWidgetItem(valOk ? formatValue(value, is32) : QString()));
+            new QTableWidgetItem(valOk ? formatValue(value, is32, hexMode) : QString()));
     }
 
     ui->lblProgress->setText(tr("Loaded %1 rows from CSV.").arg(ui->tblParams->rowCount()));
@@ -421,7 +431,21 @@ quint32 BatchParamDialog::parseHexOrDec32(const QString& text, bool* ok)
     }
     else if (!trimmed.isEmpty())
     {
-        value = trimmed.toUInt(&localOk, 10);
+        // Use toLongLong so that negative decimal values (e.g. -1) are accepted.
+        // We accept any value whose bit pattern fits in 32 bits, i.e. the range
+        // [INT32_MIN, UINT32_MAX].
+        const qint64 signed64 = trimmed.toLongLong(&localOk, 10);
+        if (localOk)
+        {
+            if (signed64 < static_cast<qint64>(INT32_MIN) || signed64 > static_cast<qint64>(UINT32_MAX))
+            {
+                localOk = false;
+            }
+            else
+            {
+                value = static_cast<quint32>(signed64);
+            }
+        }
     }
 
     if (ok)
@@ -432,14 +456,67 @@ quint32 BatchParamDialog::parseHexOrDec32(const QString& text, bool* ok)
     return value;
 }
 
-QString BatchParamDialog::formatValue(quint32 value, bool is32Bit)
+QString BatchParamDialog::formatValue(quint32 value, bool is32Bit, bool hexMode)
 {
-    if (is32Bit)
+    if (hexMode)
     {
-        return QString("0x%1").arg(value, 8, 16, QChar('0')).toUpper();
+        if (is32Bit)
+        {
+            return QString("0x%1").arg(value, 8, 16, QChar('0')).toUpper();
+        }
+        else
+        {
+            return QString("0x%1").arg(value & 0xFFFF, 4, 16, QChar('0')).toUpper();
+        }
     }
     else
     {
-        return QString("0x%1").arg(value & 0xFFFF, 4, 16, QChar('0')).toUpper();
+        return is32Bit ? QString::number(value) : QString::number(value & 0xFFFF);
+    }
+}
+
+QString BatchParamDialog::formatAddress(quint16 addr, bool hexMode)
+{
+    if (hexMode)
+    {
+        return QString("0x%1").arg(addr, 4, 16, QChar('0')).toUpper();
+    }
+    else
+    {
+        return QString::number(addr);
+    }
+}
+
+void BatchParamDialog::onHexDisplayToggled(bool checked)
+{
+    for (int row = 0; row < ui->tblParams->rowCount(); row++)
+    {
+        // Reformat Address column
+        const QTableWidgetItem* addrItem = ui->tblParams->item(row, COL_ADDRESS);
+        if (addrItem)
+        {
+            bool ok = false;
+            const quint32 addr = parseHexOrDec32(addrItem->text(), &ok);
+            if (ok)
+            {
+                ui->tblParams->setItem(row, COL_ADDRESS,
+                    new QTableWidgetItem(formatAddress(static_cast<quint16>(addr), checked)));
+            }
+        }
+
+        // Reformat Value column (skip cells that don't hold a plain number)
+        const QTableWidgetItem* typeItem  = ui->tblParams->item(row, COL_TYPE);
+        const QTableWidgetItem* valueItem = ui->tblParams->item(row, COL_VALUE);
+        if (valueItem)
+        {
+            bool ok = false;
+            const quint32 val = parseHexOrDec32(valueItem->text(), &ok);
+            if (ok)
+            {
+                const bool is32 = typeItem && (typeItem->text() == "32");
+                ui->tblParams->setItem(row, COL_VALUE,
+                    new QTableWidgetItem(formatValue(val, is32, checked)));
+            }
+        }
     }
 }
