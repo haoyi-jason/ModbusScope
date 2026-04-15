@@ -72,6 +72,17 @@ double ModbusRegister::processValue(uint16_t lowerRegister, uint16_t upperRegist
             processedResult = static_cast<double>(static_cast<qint32>(combinedValue));
         }
     }
+    else if (ModbusDataType::is8Bit(_type))
+    {
+        if (ModbusDataType::isUnsigned(_type))
+        {
+            processedResult = static_cast<double>(static_cast<quint8>(lowerRegister & 0xFF));
+        }
+        else
+        {
+            processedResult = static_cast<double>(static_cast<qint8>(lowerRegister & 0xFF));
+        }
+    }
     else
     {
         if (ModbusDataType::isUnsigned(_type))

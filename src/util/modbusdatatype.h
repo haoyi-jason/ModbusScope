@@ -15,11 +15,18 @@ public:
         UNSIGNED_32 = 2,
         SIGNED_32 = 3,
         FLOAT_32 = 4,
+        UNSIGNED_8 = 5,
+        SIGNED_8 = 6,
     };
 
     static bool is32Bit(ModbusDataType::Type type)
     {
         return cDataTypes[static_cast<int>(type)].b32Bit;
+    }
+
+    static bool is8Bit(ModbusDataType::Type type)
+    {
+        return cDataTypes[static_cast<int>(type)].b8Bit;
     }
 
     static bool isUnsigned(ModbusDataType::Type type)
@@ -38,20 +45,19 @@ public:
         {
         case Type::SIGNED_16:
             return "s16b";
-            break;
         case Type::UNSIGNED_32:
             return "32b";
-            break;
         case Type::SIGNED_32:
             return "s32b";
-            break;
         case Type::FLOAT_32:
             return "f32b";
-            break;
+        case Type::UNSIGNED_8:
+            return "u8b";
+        case Type::SIGNED_8:
+            return "s8b";
         case Type::UNSIGNED_16:
         default:
             return "16b";
-            break;
         }
     }
 
@@ -61,20 +67,19 @@ public:
         {
         case Type::SIGNED_16:
             return "signed 16-bit";
-            break;
         case Type::UNSIGNED_32:
             return "unsigned 32-bit";
-            break;
         case Type::SIGNED_32:
             return "signed 32-bit";
-            break;
         case Type::FLOAT_32:
             return "32-bit float";
-            break;
+        case Type::UNSIGNED_8:
+            return "unsigned 8-bit";
+        case Type::SIGNED_8:
+            return "signed 8-bit";
         case Type::UNSIGNED_16:
         default:
             return "unsigned 16-bit";
-            break;
         }
     }
 
@@ -117,6 +122,14 @@ public:
         else if (strType == "f32b")
         {
             return Type::FLOAT_32;
+        }
+        else if (strType == "u8b")
+        {
+            return Type::UNSIGNED_8;
+        }
+        else if (strType == "s8b")
+        {
+            return Type::SIGNED_8;
         }
         else
         {
@@ -172,6 +185,7 @@ private:
     struct TypeSettings
     {
         bool b32Bit;
+        bool b8Bit;
         bool bUnsigned;
         bool bFloat;
     };

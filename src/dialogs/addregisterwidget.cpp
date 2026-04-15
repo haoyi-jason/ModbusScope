@@ -41,6 +41,8 @@ AddRegisterWidget::AddRegisterWidget(SettingsModel* pSettingsModel, QWidget *par
     _pUi->cmbType->addItem(ModbusDataType::description(Type::SIGNED_16), QVariant::fromValue(Type::SIGNED_16));
     _pUi->cmbType->addItem(ModbusDataType::description(Type::SIGNED_32), QVariant::fromValue(Type::SIGNED_32));
     _pUi->cmbType->addItem(ModbusDataType::description(Type::FLOAT_32), QVariant::fromValue(Type::FLOAT_32));
+    _pUi->cmbType->addItem(ModbusDataType::description(Type::UNSIGNED_8), QVariant::fromValue(Type::UNSIGNED_8));
+    _pUi->cmbType->addItem(ModbusDataType::description(Type::SIGNED_8), QVariant::fromValue(Type::SIGNED_8));
 
     connect(_pUi->btnAdd, &QPushButton::clicked, this, &AddRegisterWidget::handleResultAccept);
 

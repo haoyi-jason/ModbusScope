@@ -9,6 +9,7 @@ private slots:
     void cleanup();
 
     void is32bit();
+    void is8bit();
     void isUnsigned();
     void isFloat();
 
