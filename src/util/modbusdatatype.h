@@ -45,26 +45,19 @@ public:
         {
         case Type::SIGNED_16:
             return "s16b";
-            break;
         case Type::UNSIGNED_32:
             return "32b";
-            break;
         case Type::SIGNED_32:
             return "s32b";
-            break;
         case Type::FLOAT_32:
             return "f32b";
-            break;
         case Type::UNSIGNED_8:
             return "u8b";
-            break;
         case Type::SIGNED_8:
             return "s8b";
-            break;
         case Type::UNSIGNED_16:
         default:
             return "16b";
-            break;
         }
     }
 
@@ -74,26 +67,19 @@ public:
         {
         case Type::SIGNED_16:
             return "signed 16-bit";
-            break;
         case Type::UNSIGNED_32:
             return "unsigned 32-bit";
-            break;
         case Type::SIGNED_32:
             return "signed 32-bit";
-            break;
         case Type::FLOAT_32:
             return "32-bit float";
-            break;
         case Type::UNSIGNED_8:
             return "unsigned 8-bit";
-            break;
         case Type::SIGNED_8:
             return "signed 8-bit";
-            break;
         case Type::UNSIGNED_16:
         default:
             return "unsigned 16-bit";
-            break;
         }
     }
 

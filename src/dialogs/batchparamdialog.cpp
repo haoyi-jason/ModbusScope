@@ -655,7 +655,6 @@ QString BatchParamDialog::formatValue(quint32 rawValue, ModbusDataType::Type typ
         case ModbusDataType::Type::SIGNED_8:
             return QString::number(static_cast<qint8>(rawValue & 0xFF));
         case ModbusDataType::Type::UNSIGNED_16:
-        default:
             return QString::number(static_cast<quint16>(rawValue & 0xFFFF));
         case ModbusDataType::Type::SIGNED_16:
             return QString::number(static_cast<qint16>(rawValue & 0xFFFF));
@@ -669,6 +668,8 @@ QString BatchParamDialog::formatValue(quint32 rawValue, ModbusDataType::Type typ
             std::memcpy(&f, &rawValue, sizeof(f));
             return QString::number(static_cast<double>(f));
         }
+        default:
+            return QString::number(static_cast<quint16>(rawValue & 0xFFFF));
         }
     }
 }
