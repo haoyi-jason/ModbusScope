@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "models/connectiontypes.h"
 #include "dialogs/batchparamentry.h"
+#include "util/modbusdatatype.h"
 
 namespace Ui {
 class BatchParamDialog;
@@ -42,9 +43,18 @@ private:
     void finishBatch();
     void setBatchButtonsEnabled(bool enabled);
 
+    ModbusDataType::Type rowType(int row) const;
+
     static quint32 parseHexOrDec32(const QString& text, bool* ok = nullptr);
-    static QString formatValue(quint32 value, bool is32Bit, bool hexMode);
+    static quint32 parseDisplayedValue(const QString& text, ModbusDataType::Type type,
+                                       bool currentHexMode, bool* ok = nullptr);
+    static bool encodeToWords(const QString& text, ModbusDataType::Type type,
+                              quint16& word1, quint16& word2);
+    static QString formatValue(quint32 rawValue, ModbusDataType::Type type, bool hexMode);
     static QString formatAddress(quint16 addr, bool hexMode);
+
+    static QString typeToLabel(ModbusDataType::Type type);
+    static bool labelToType(const QString& label, ModbusDataType::Type& type);
 
     Ui::BatchParamDialog* ui;
     ModbusPoll* _pModbusPoll;

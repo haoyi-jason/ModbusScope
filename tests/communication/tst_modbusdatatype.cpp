@@ -27,6 +27,19 @@ void TestModbusDataType::is32bit()
     QCOMPARE(ModbusDataType::is32Bit(Type::UNSIGNED_32), true);
     QCOMPARE(ModbusDataType::is32Bit(Type::SIGNED_32), true);
     QCOMPARE(ModbusDataType::is32Bit(Type::FLOAT_32), true);
+    QCOMPARE(ModbusDataType::is32Bit(Type::UNSIGNED_8), false);
+    QCOMPARE(ModbusDataType::is32Bit(Type::SIGNED_8), false);
+}
+
+void TestModbusDataType::is8bit()
+{
+    QCOMPARE(ModbusDataType::is8Bit(Type::UNSIGNED_16), false);
+    QCOMPARE(ModbusDataType::is8Bit(Type::SIGNED_16), false);
+    QCOMPARE(ModbusDataType::is8Bit(Type::UNSIGNED_32), false);
+    QCOMPARE(ModbusDataType::is8Bit(Type::SIGNED_32), false);
+    QCOMPARE(ModbusDataType::is8Bit(Type::FLOAT_32), false);
+    QCOMPARE(ModbusDataType::is8Bit(Type::UNSIGNED_8), true);
+    QCOMPARE(ModbusDataType::is8Bit(Type::SIGNED_8), true);
 }
 
 void TestModbusDataType::isUnsigned()
@@ -36,6 +49,8 @@ void TestModbusDataType::isUnsigned()
     QCOMPARE(ModbusDataType::isUnsigned(Type::UNSIGNED_32), true);
     QCOMPARE(ModbusDataType::isUnsigned(Type::SIGNED_32), false);
     QCOMPARE(ModbusDataType::isUnsigned(Type::FLOAT_32), false);
+    QCOMPARE(ModbusDataType::isUnsigned(Type::UNSIGNED_8), true);
+    QCOMPARE(ModbusDataType::isUnsigned(Type::SIGNED_8), false);
 }
 
 void TestModbusDataType::isFloat()
@@ -45,6 +60,8 @@ void TestModbusDataType::isFloat()
     QCOMPARE(ModbusDataType::isFloat(Type::UNSIGNED_32), false);
     QCOMPARE(ModbusDataType::isFloat(Type::SIGNED_32), false);
     QCOMPARE(ModbusDataType::isFloat(Type::FLOAT_32), true);
+    QCOMPARE(ModbusDataType::isFloat(Type::UNSIGNED_8), false);
+    QCOMPARE(ModbusDataType::isFloat(Type::SIGNED_8), false);
 }
 
 void TestModbusDataType::convertString_data()
@@ -57,6 +74,8 @@ void TestModbusDataType::convertString_data()
     ADD_TYPE_TEST("32b", Type::UNSIGNED_32);
     ADD_TYPE_TEST("s32b", Type::SIGNED_32);
     ADD_TYPE_TEST("f32b", Type::FLOAT_32);
+    ADD_TYPE_TEST("u8b", Type::UNSIGNED_8);
+    ADD_TYPE_TEST("s8b", Type::SIGNED_8);
 }
 
 void TestModbusDataType::convertString()
@@ -120,6 +139,8 @@ void TestModbusDataType::typeString_data()
     ADD_STRING_TEST(Type::UNSIGNED_32, "32b");
     ADD_STRING_TEST(Type::SIGNED_32, "s32b");
     ADD_STRING_TEST(Type::FLOAT_32, "f32b");
+    ADD_STRING_TEST(Type::UNSIGNED_8, "u8b");
+    ADD_STRING_TEST(Type::SIGNED_8, "s8b");
     ADD_STRING_TEST(static_cast<ModbusDataType::Type>(255), "16b");
 }
 
@@ -143,6 +164,8 @@ void TestModbusDataType::description_data()
     ADD_STRING_TEST(Type::UNSIGNED_32, "unsigned 32-bit");
     ADD_STRING_TEST(Type::SIGNED_32, "signed 32-bit");
     ADD_STRING_TEST(Type::FLOAT_32, "32-bit float");
+    ADD_STRING_TEST(Type::UNSIGNED_8, "unsigned 8-bit");
+    ADD_STRING_TEST(Type::SIGNED_8, "signed 8-bit");
     ADD_STRING_TEST(static_cast<ModbusDataType::Type>(255), "unsigned 16-bit");
 }
 

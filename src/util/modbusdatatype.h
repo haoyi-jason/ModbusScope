@@ -15,11 +15,18 @@ public:
         UNSIGNED_32 = 2,
         SIGNED_32 = 3,
         FLOAT_32 = 4,
+        UNSIGNED_8 = 5,
+        SIGNED_8 = 6,
     };
 
     static bool is32Bit(ModbusDataType::Type type)
     {
         return cDataTypes[static_cast<int>(type)].b32Bit;
+    }
+
+    static bool is8Bit(ModbusDataType::Type type)
+    {
+        return cDataTypes[static_cast<int>(type)].b8Bit;
     }
 
     static bool isUnsigned(ModbusDataType::Type type)
@@ -48,6 +55,12 @@ public:
         case Type::FLOAT_32:
             return "f32b";
             break;
+        case Type::UNSIGNED_8:
+            return "u8b";
+            break;
+        case Type::SIGNED_8:
+            return "s8b";
+            break;
         case Type::UNSIGNED_16:
         default:
             return "16b";
@@ -70,6 +83,12 @@ public:
             break;
         case Type::FLOAT_32:
             return "32-bit float";
+            break;
+        case Type::UNSIGNED_8:
+            return "unsigned 8-bit";
+            break;
+        case Type::SIGNED_8:
+            return "signed 8-bit";
             break;
         case Type::UNSIGNED_16:
         default:
@@ -117,6 +136,14 @@ public:
         else if (strType == "f32b")
         {
             return Type::FLOAT_32;
+        }
+        else if (strType == "u8b")
+        {
+            return Type::UNSIGNED_8;
+        }
+        else if (strType == "s8b")
+        {
+            return Type::SIGNED_8;
         }
         else
         {
@@ -172,6 +199,7 @@ private:
     struct TypeSettings
     {
         bool b32Bit;
+        bool b8Bit;
         bool bUnsigned;
         bool bFloat;
     };
